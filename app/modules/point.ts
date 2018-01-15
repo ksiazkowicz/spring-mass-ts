@@ -41,7 +41,7 @@ export class Point {
     force: Vector2d;
     radius: number;
     m: number;
-    color: Color;
+    color: Color = new Color(0,0,0);
     fixed: boolean = false;
 
     constructor (position: Vector2d, radius: number, velocity: Vector2d) {
