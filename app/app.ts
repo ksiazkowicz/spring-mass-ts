@@ -31,25 +31,34 @@ class Application {
         let dt = 0.1;
 
         for (let point of this.points) {
-            point.move(dt);
-            let drag = point.velocity.multiply(point.radius*Math.PI*(-6)*viscosity_factor);
-            let f = new Vector2d(0,0);
-
-            for (let s of this.springs) {
-                if (s.points.indexOf(point) == 0) {
-                    f = f.add(s.force());
-                }
-                if (s.points.indexOf(point) == 1) {
-                    f = f.subtract(s.force());
-                }
-            }
-            point.accelerate(new Vector2d(0, 9.81).add(f)); //.multiply(0.99).add(drag));
-
-            for (let point2 of this.points) {
-                if (point.checkCollision(point2))
-                    point.bounceFrom(point2);
-            }
+            point.force = new Vector2d(0, 9.81);
         }
+
+        for (let s of this.springs) {
+            let force = s.force();
+            let p1 = s.points[0];
+            let p2 = s.points[1];
+            p1.force = p1.force.subtract(force);
+            p2.force = p2.force.add(force);
+        }
+
+        for (let point of this.points) {
+            point.move(dt);
+        }
+
+        /*for (let point of this.points) {
+            //let drag = point.velocity.multiply(point.radius*Math.PI*(-6)*viscosity_factor);
+            point.accelerate(f.add(new Vector2d(0, 9.81)));
+
+
+            //for (let point2 of this.points) {
+            //    if (point.checkCollision(point2))
+            //        point.bounceFrom(point2);
+            //}
+
+            //if (point.exitingX(this.renderer.W)) point.bounceX();
+            //if (point.exitingY(this.renderer.H)) point.bounceY();
+        }*/
     }
 
     constructor() {
@@ -111,6 +120,14 @@ class Application {
             if (svg.classList.contains("fixed-end"))
                 movable_element.fixLast();
         }
+
+        /*for (let p of this.points) {
+            for (let p1 of this.points) {
+                if (p != p1) {
+                    this.springs.push(new Spring(p1, p));
+                }
+            }
+        }*/
 
         // start event loop
         var loop = () =>

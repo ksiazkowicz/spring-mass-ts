@@ -3,8 +3,22 @@ import { Vector2d, Color } from './types';
 export class Spring {
     points: Array<Point> = new Array<Point>();
     initial_length: number = 0;
-    ks: number = 0.05;
-    kd: number = 0.1;
+    ks: number = 50;
+    kd: number = 1;
+
+    constraint(): Vector2d {
+        let a = this.points[0]; let b = this.points[1];
+        let difference = a.position.subtract(b.position);
+        let current_length = difference.length();
+        let max_length = 0.1*this.initial_length;
+
+        if (Math.abs(current_length - this.initial_length) > (this.initial_length + max_length)) {
+            //a.force.(b.position.subtract(a.position).multiply(max_length));
+            //b.accelerate(a.position.subtract(b.position).multiply(max_length));
+
+            return new Vector2d(0,0);
+        } else return new Vector2d(0,0);
+    }
 
     force(): Vector2d {
         let a = this.points[0]; let b = this.points[1];
@@ -46,10 +60,10 @@ export class Point {
 
     constructor (position: Vector2d, radius: number, velocity: Vector2d) {
         this.position = position;
-        this.m = 0.01;
+        this.m = 1;
         this.radius = radius;
-        this.force = new Vector2d(0, 0);
         this.velocity = velocity;
+        this.force = new Vector2d(0, 0);
     }
 
     setColor(r: number, g: number, b: number): void {
@@ -76,19 +90,26 @@ export class Point {
     }
 
     move(dt: number): void {
+        let acceleration = this.force.divide(this.m);
+        this.force = new Vector2d(0, 0);
         if (!this.fixed) {
-            let halfStepVel = this.velocity.add(this.force.multiply(this.m).multiply(0.5));
+            this.velocity = this.velocity.add(acceleration.multiply(dt));
+            this.position = this.position.add(this.velocity.multiply(dt));
+        } else {
+            this.velocity = new Vector2d(0, 0);
+        }
 
-            this.position = this.position.add(halfStepVel.multiply(dt));
-            //this.velocity = halfStepVel.add(this.force.multiply(this.m).multiply(0.5));
+        /*if (!this.fixed) {
+            let old_acceleration = this.acceleration;
+            this.position = this.position.add(this.velocity.multiply(dt).add(this.acceleration.multiply(0.5*Math.pow(dt, 2))));
+            this.acceleration = this.force.divide(this.m);
+            this.velocity = this.velocity.add(old_acceleration.add(this.acceleration).multiply(0.5*dt));
         } else {
             this.velocity = new Vector2d(0,0);
         }
-        this.force = new Vector2d(0, 0);
-    }
-    
-    accelerate(a: Vector2d): void {
-        this.force = this.force.add(a);
+        //this.velocity = new Vector2d(0,0);
+        //this.acceleration = new Vector2d(0,0);
+        this.force = new Vector2d(0, 0);*/
     }
     checkCollision(point: Point): boolean {
         if (point == this) return false;
@@ -110,8 +131,10 @@ export class Point {
         let im2: number = 1 / point.m;
 
         // push-pull them apart based off their mass
-        this.position = this.position.add(mtd.multiply(im1 / (im1 + im2)));
-        point.position = point.position.subtract(mtd.multiply(im2 / (im1 + im2)));
+        if (!this.fixed)
+            this.position = this.position.add(mtd.multiply(im1 / (im1 + im2)));
+        if (!point.fixed)
+            point.position = point.position.subtract(mtd.multiply(im2 / (im1 + im2)));
 
         // impact speed
         let v: Vector2d = this.velocity.subtract(point.velocity);

@@ -58,7 +58,7 @@ export class Poor2DRenderer extends BaseRenderer {
     draw(point: Point): void {
         this.context.fillStyle = point.color.getRGB();
         this.context.beginPath();
-        this.context.arc(this.W-point.position.x,this.H-point.position.y,point.radius,0,2*Math.PI);
+        this.context.arc(this.W-point.position.x,point.position.y,point.radius,0,2*Math.PI);
         this.context.fill();
     }
 
@@ -68,13 +68,18 @@ export class Poor2DRenderer extends BaseRenderer {
         for (let spring of springs) {
             this.context.beginPath();
             this.context.strokeStyle = "rgba(0,0,0,0.5);";
-            this.context.moveTo(this.W-spring.points[0].position.x, this.H-spring.points[0].position.y);
-            this.context.lineTo(this.W-spring.points[1].position.x, this.H-spring.points[1].position.y);
+            this.context.moveTo(this.W-spring.points[0].position.x, spring.points[0].position.y);
+            this.context.lineTo(this.W-spring.points[1].position.x, spring.points[1].position.y);
             this.context.stroke();
         }
 
         for (let point of points) {
             this.draw(point);
+            /*this.context.font = "10px Source Code Pro"
+            let debug_text = "v:" + point.velocity.x.toFixed(2) + "," + point.velocity.y.toFixed(2);
+            debug_text += " f: " + point.force.x.toFixed(2) + "," + point.force.y.toFixed(2);
+
+            this.context.fillText(debug_text, this.W-point.position.x, point.position.y);*/
         }
     }
 }
